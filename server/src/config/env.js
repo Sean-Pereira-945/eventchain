@@ -10,11 +10,28 @@ dotenv.config({ path: path.resolve(process.cwd(), '.env') });
  * of the codebase can rely on sensible defaults and avoid accessing
  * process.env directly.
  */
+const parseOrigins = (value, fallbacks = []) => {
+  const entries = (value || '')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
+  return Array.from(new Set([...entries, ...fallbacks]));
+};
+
+const defaultClientOrigins = [
+  'http://localhost:3000',
+  'http://localhost:3001',
+];
+
+const clientOrigins = parseOrigins(process.env.CLIENT_URL, defaultClientOrigins);
+
 const env = {
   nodeEnv: process.env.NODE_ENV || 'development',
   isProduction: (process.env.NODE_ENV || 'development') === 'production',
   port: Number(process.env.PORT) || 5000,
-  clientUrl: process.env.CLIENT_URL || 'http://localhost:3000',
+  clientUrl: clientOrigins[0],
+  clientOrigins,
 
   // Database configuration
   mongodbUri: process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/event-management',
@@ -50,12 +67,12 @@ const env = {
     google: {
       calendarClientId: process.env.GOOGLE_CALENDAR_CLIENT_ID || '',
       calendarClientSecret: process.env.GOOGLE_CALENDAR_CLIENT_SECRET || '',
-      calendarRedirectUri: process.env.GOOGLE_CALENDAR_REDIRECT_URI || `${process.env.CLIENT_URL || 'http://localhost:3000'}/api/integrations/google/callback`,
+      calendarRedirectUri: process.env.GOOGLE_CALENDAR_REDIRECT_URI || `${clientOrigins[0]}/api/integrations/google/callback`,
     },
     linkedin: {
       clientId: process.env.LINKEDIN_CLIENT_ID || '',
       clientSecret: process.env.LINKEDIN_CLIENT_SECRET || '',
-      redirectUri: process.env.LINKEDIN_REDIRECT_URI || `${process.env.CLIENT_URL || 'http://localhost:3000'}/api/integrations/linkedin/callback`,
+      redirectUri: process.env.LINKEDIN_REDIRECT_URI || `${clientOrigins[0]}/api/integrations/linkedin/callback`,
     },
   },
 };

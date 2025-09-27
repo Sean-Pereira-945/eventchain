@@ -9,7 +9,7 @@ const logger = require('./logger');
 const configureSocket = (httpServer) => {
   const io = new Server(httpServer, {
     cors: {
-      origin: env.clientUrl,
+      origin: env.clientOrigins,
       methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
       credentials: true,
     },

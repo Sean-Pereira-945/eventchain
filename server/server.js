@@ -5,22 +5,33 @@ const cors = require('cors');                // Cross-origin resource sharing
 const http = require('http');                // HTTP server
 const socketIo = require('socket.io');       // Real-time communication
 require('dotenv').config();                  // Environment variables
+const env = require('./src/config/env');
 
 // Initialize Express application
 const app = express();
 const server = http.createServer(app);       // Create HTTP server
+const isOriginAllowed = (origin) => !origin || env.clientOrigins.includes(origin);
+
+const corsOptions = {
+    origin: (origin, callback) => {
+        if (isOriginAllowed(origin)) {
+            return callback(null, true);
+        }
+
+        return callback(new Error(`CORS origin not allowed: ${origin}`));
+    },
+    credentials: true,
+};
+
 const io = socketIo(server, {                // Initialize Socket.io
     cors: {
-        origin: process.env.CLIENT_URL || "http://localhost:3000",
+        origin: env.clientOrigins,
         methods: ["GET", "POST"]
     }
 });
 
 // Middleware Configuration
-app.use(cors({                               // Enable CORS for all routes
-    origin: process.env.CLIENT_URL || "http://localhost:3000",
-    credentials: true
-}));
+app.use(cors(corsOptions));                  // Enable CORS for all routes
 app.use(express.json({ limit: '10mb' }));    // Parse JSON bodies up to 10MB
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
 
@@ -101,7 +112,7 @@ app.use('*', (req, res) => {
 });
 
 // Start server
-const PORT = process.env.PORT || 5000;
+const PORT = env.port;
 server.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
     console.log(`📊 Environment: ${process.env.NODE_ENV}`);

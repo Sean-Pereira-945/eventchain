@@ -5,7 +5,7 @@ import { useSocket } from './SocketContext';
 const NotificationContext = createContext();
 
 export const NotificationProvider = ({ children }) => {
-  const { socket } = useSocket();
+  const { socket, isConnected, error } = useSocket();
   const [notifications, setNotifications] = useState([]);
 
   const removeNotification = useCallback((id) => {
@@ -30,13 +30,15 @@ export const NotificationProvider = ({ children }) => {
     }
   }, [removeNotification]);
 
+  const clearNotifications = useCallback(() => setNotifications([]), []);
+
   const value = useMemo(
-    () => ({ notifications, showNotification, removeNotification }),
-    [notifications, showNotification, removeNotification]
+    () => ({ notifications, showNotification, removeNotification, clearNotifications }),
+    [notifications, showNotification, removeNotification, clearNotifications]
   );
 
   useEffect(() => {
-    if (!socket) return;
+    if (!socket || !isConnected) return;
     const handler = (payload) => {
       showNotification({
         type: payload.type || 'info',
@@ -49,7 +51,17 @@ export const NotificationProvider = ({ children }) => {
     return () => {
       socket.off('notification:new', handler);
     };
-  }, [socket, showNotification]);
+  }, [socket, isConnected, showNotification]);
+
+  useEffect(() => {
+    if (!error) return;
+    showNotification({
+      type: 'error',
+      title: 'Connection issue',
+      message: 'We’re having trouble reaching the realtime service. Retrying…',
+      duration: 7000
+    });
+  }, [error, showNotification]);
 
   return <NotificationContext.Provider value={value}>{children}</NotificationContext.Provider>;
 };

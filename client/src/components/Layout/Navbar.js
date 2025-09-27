@@ -8,15 +8,26 @@ const Navbar = () => {
   const { isAuthenticated, user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
 
+  const initials = user?.name
+    ?.split(' ')
+    .map((part) => part[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
+
   return (
-    <header className="navbar">
+    <header className="navbar" role="banner">
+      <div className="navbar__glow" aria-hidden />
       <div className="navbar__brand">
         <span className="navbar__logo" aria-hidden>
-          ⛓️
+          ✦
         </span>
-        <span>EventChain</span>
+        <div className="navbar__brand-copy">
+          <span className="navbar__brand-title">EventChain</span>
+          <span className="navbar__brand-subtitle">Futuristic event OS</span>
+        </div>
       </div>
-      <nav className="navbar__links hide-mobile">
+      <nav className="navbar__links hide-mobile" aria-label="Primary">
         <NavLink to="/" end>
           Home
         </NavLink>
@@ -26,12 +37,18 @@ const Navbar = () => {
         <NavLink to="/contact">Contact</NavLink>
       </nav>
       <div className="navbar__actions">
-        <Button variant="ghost" onClick={toggleTheme} size="sm">
-          {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+        <Button variant="ghost" onClick={toggleTheme} size="sm" aria-label="Toggle theme">
+          {theme === 'dark' ? '☀️' : '🌙'}
         </Button>
         {isAuthenticated ? (
-          <div className="navbar__user">
-            <span>{user?.name}</span>
+          <div className="navbar__user" aria-label="Account menu">
+            <span className="navbar__avatar" aria-hidden>
+              {initials || 'EC'}
+            </span>
+            <div className="navbar__user-info">
+              <span>{user?.name}</span>
+              <small>{user?.role ?? 'Explorer'}</small>
+            </div>
             <Button variant="outline" size="sm" onClick={logout}>
               Logout
             </Button>
@@ -40,7 +57,7 @@ const Navbar = () => {
           <div className="navbar__auth hide-mobile">
             <NavLink to="/login">Login</NavLink>
             <Button as="a" href="/register" size="sm">
-              Sign up
+              Get started
             </Button>
           </div>
         )}
