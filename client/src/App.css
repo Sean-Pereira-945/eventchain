@@ -1,0 +1,40 @@
+.app {
+  min-height: 100vh;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.app__content {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  padding: 1.5rem;
+  gap: 1.5rem;
+}
+
+@media (max-width: 1024px) {
+  .app__content {
+    grid-template-columns: 1fr;
+    padding: 1rem;
+  }
+}
+
+.theme-dark {
+  --color-background: #0d1117;
+  --color-surface: #161b22;
+  --color-accent: #6366f1;
+  --color-text-primary: #e2e8f0;
+  --color-text-secondary: #94a3b8;
+  --color-border: rgba(148, 163, 184, 0.25);
+}
+
+.theme-light {
+  --color-background: #f8fafc;
+  --color-surface: #ffffff;
+  --color-accent: #4f46e5;
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #334155;
+  --color-border: rgba(15, 23, 42, 0.12);
+}

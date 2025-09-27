@@ -1,0 +1,57 @@
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { nanoid } from 'nanoid';
+import { useSocket } from './SocketContext';
+
+const NotificationContext = createContext();
+
+export const NotificationProvider = ({ children }) => {
+  const { socket } = useSocket();
+  const [notifications, setNotifications] = useState([]);
+
+  const removeNotification = useCallback((id) => {
+    setNotifications((current) => current.filter((notification) => notification.id !== id));
+  }, []);
+
+  const showNotification = useCallback(({ type = 'info', title, message, duration = 5000 }) => {
+    const id = nanoid();
+    setNotifications((current) => [
+      ...current,
+      {
+        id,
+        type,
+        title,
+        message,
+        duration
+      }
+    ]);
+
+    if (duration) {
+      setTimeout(() => removeNotification(id), duration);
+    }
+  }, [removeNotification]);
+
+  const value = useMemo(
+    () => ({ notifications, showNotification, removeNotification }),
+    [notifications, showNotification, removeNotification]
+  );
+
+  useEffect(() => {
+    if (!socket) return;
+    const handler = (payload) => {
+      showNotification({
+        type: payload.type || 'info',
+        title: payload.title || 'Notification',
+        message: payload.message
+      });
+    };
+
+    socket.on('notification:new', handler);
+    return () => {
+      socket.off('notification:new', handler);
+    };
+  }, [socket, showNotification]);
+
+  return <NotificationContext.Provider value={value}>{children}</NotificationContext.Provider>;
+};
+
+export const useNotifications = () => useContext(NotificationContext);
